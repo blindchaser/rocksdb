@@ -269,12 +269,14 @@ inline void DeleteIOUring(void* p) {
 }
 
 inline struct io_uring* CreateIOUring() {
+  fprintf(stderr, "Attempting to create io_uring...\n");
   struct io_uring* new_io_uring = new struct io_uring;
   int ret = io_uring_queue_init(kIoUringDepth, new_io_uring, 0);
   if (ret) {
     delete new_io_uring;
     new_io_uring = nullptr;
   }
+  fprintf(stderr, "io_uring created with depth %d and new_io_uring: %p\n", kIoUringDepth, new_io_uring);
   return new_io_uring;
 }
 #endif  // defined(ROCKSDB_IOURING_PRESENT)
