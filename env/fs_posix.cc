@@ -1187,8 +1187,13 @@ class PosixFileSystem : public FileSystem {
 #if defined(ROCKSDB_IOURING_PRESENT)
     if (IsIOUringEnabled()) {
       // Underlying FS supports async_io
+      fprintf(stderr, "[DEBUG]: io_uring operations are supported\n");
       supported_ops |= (1 << FSSupportedOps::kAsyncIO);
+    } else {
+      fprintf(stderr, "[DEBUG]: io_uring operations are not enabled\n");
     }
+#else
+    fprintf(stderr, "[DEBUG]: io_uring operations not compiled in\n"); 
 #endif
   }
 
@@ -1254,9 +1259,14 @@ PosixFileSystem::PosixFileSystem()
   // io_uring can be created.
   struct io_uring* new_io_uring = CreateIOUring();
   if (new_io_uring != nullptr) {
+    fprintf(stderr, "INFO: io_uring is supported and enabled\n");
     thread_local_io_urings_.reset(new ThreadLocalPtr(DeleteIOUring));
     delete new_io_uring;
+  } else {
+    fprintf(stderr, "INFO: io_uring is not supported or disabled\n"); 
   }
+#else
+  fprintf(stderr, "INFO: io_uring is not supported or disabled\n"); 
 #endif
 }
 

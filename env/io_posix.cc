@@ -166,6 +166,9 @@ bool PosixPositionedWrite(int fd, const char* buf, size_t nbyte, off_t offset) {
 #endif
 
 bool IsSyncFileRangeSupported(int fd) {
+#ifdef ROCKSDB_RANGESYNC_PRESENT
+  fprintf(stderr, "[DEBUG]: Checking if sync_file_range is supported for fd %d\n", fd);
+#endif
   // This function tracks and checks for cases where we know `sync_file_range`
   // definitely will not work properly despite passing the compile-time check
   // (`ROCKSDB_RANGESYNC_PRESENT`). If we are unsure, or if any of the checks
