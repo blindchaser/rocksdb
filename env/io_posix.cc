@@ -167,7 +167,7 @@ bool PosixPositionedWrite(int fd, const char* buf, size_t nbyte, off_t offset) {
 
 bool IsSyncFileRangeSupported(int fd) {
 #ifdef ROCKSDB_RANGESYNC_PRESENT
-  fprintf(stderr, "[DEBUG]: Checking if sync_file_range is supported for fd %d\n", fd);
+  // fprintf(stderr, "[DEBUG]: Checking if sync_file_range is supported for fd %d\n", fd);
 #endif
   // This function tracks and checks for cases where we know `sync_file_range`
   // definitely will not work properly despite passing the compile-time check
@@ -625,6 +625,7 @@ IOStatus PosixRandomAccessFile::MultiRead(FSReadRequest* reqs, size_t num_reqs,
       iu = CreateIOUring();
       if (iu != nullptr) {
         thread_local_io_urings_->Reset(iu);
+        fprintf(stderr, "io_uring created with depth %d and new_io_uring: %p\n", kIoUringDepth, iu);
       }
     }
   }
@@ -632,6 +633,7 @@ IOStatus PosixRandomAccessFile::MultiRead(FSReadRequest* reqs, size_t num_reqs,
   // Init failed, platform doesn't support io_uring. Fall back to
   // serialized reads
   if (iu == nullptr) {
+    fprintf(stderr, "io_uring is not supported, falling back to serialized reads\n");
     return FSRandomAccessFile::MultiRead(reqs, num_reqs, options, dbg);
   }
 
@@ -677,6 +679,7 @@ IOStatus PosixRandomAccessFile::MultiRead(FSReadRequest* reqs, size_t num_reqs,
 
       struct io_uring_sqe* sqe;
       sqe = io_uring_get_sqe(iu);
+      fprintf(stderr, "io_uring_prep_readv: sqe: %p\n", sqe);
       io_uring_prep_readv(
           sqe, fd_, &rep_to_submit->iov, 1,
           rep_to_submit->req->offset + rep_to_submit->finished_len);

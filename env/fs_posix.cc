@@ -990,7 +990,11 @@ class PosixFileSystem : public FileSystem {
 
 #ifdef ROCKSDB_IOURING_PRESENT
   bool IsIOUringEnabled() {
-    fprintf(stderr, "IsIOUringEnabled() called\n");
+    return true;
+    if (RocksDbIOUringEnable == nullptr) {
+      fprintf(stderr, "RocksDbIOUringEnable is nullptr\n");
+    }
+    fprintf(stderr, "RocksDbIOUringEnable(): %d\n", RocksDbIOUringEnable());
     if (RocksDbIOUringEnable && RocksDbIOUringEnable()) {
       return true;
     } else {
@@ -1188,7 +1192,7 @@ class PosixFileSystem : public FileSystem {
 #if defined(ROCKSDB_IOURING_PRESENT)
     if (IsIOUringEnabled()) {
       // Underlying FS supports async_io
-      fprintf(stderr, "[DEBUG]: io_uring operations are supported\n");
+      // fprintf(stderr, "[DEBUG]: io_uring operations are supported\n");
       supported_ops |= (1 << FSSupportedOps::kAsyncIO);
     } else {
       // fprintf(stderr, "[DEBUG]: io_uring operations are not enabled\n");
