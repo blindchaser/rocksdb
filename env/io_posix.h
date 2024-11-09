@@ -275,6 +275,7 @@ inline struct io_uring* CreateIOUring() {
     delete new_io_uring;
     new_io_uring = nullptr;
   }
+  fprintf(stderr, "io_uring created with depth %d and new_io_uring: %p\n", kIoUringDepth, new_io_uring);
   return new_io_uring;
 }
 #endif  // defined(ROCKSDB_IOURING_PRESENT)

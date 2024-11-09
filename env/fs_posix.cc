@@ -990,6 +990,7 @@ class PosixFileSystem : public FileSystem {
 
 #ifdef ROCKSDB_IOURING_PRESENT
   bool IsIOUringEnabled() {
+    return true;
     if (RocksDbIOUringEnable && RocksDbIOUringEnable()) {
       return true;
     } else {
@@ -1254,6 +1255,7 @@ PosixFileSystem::PosixFileSystem()
   // io_uring can be created.
   struct io_uring* new_io_uring = CreateIOUring();
   if (new_io_uring != nullptr) {
+    fprintf(stderr, "INFO: io_uring is supported and enabled\n");
     thread_local_io_urings_.reset(new ThreadLocalPtr(DeleteIOUring));
     delete new_io_uring;
   }
