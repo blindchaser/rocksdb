@@ -2583,6 +2583,8 @@ void Version::Get(const ReadOptions& read_options, const LookupKey& k,
 
 void Version::MultiGet(const ReadOptions& read_options, MultiGetRange* range,
                        ReadCallback* callback) {
+  fprintf(stderr, "Version::MultiGet called with optimize_multiget_for_io: %d, async_io=%d, using_coroutines=%d, use_async_io_=%d\n",
+    read_options.optimize_multiget_for_io, read_options.async_io, using_coroutines(), use_async_io_);
   PinnedIteratorsManager pinned_iters_mgr;
 
   // Pin blocks that we read to hold merge operands
@@ -2654,6 +2656,12 @@ void Version::MultiGet(const ReadOptions& read_options, MultiGetRange* range,
       // Avoid using the coroutine version if we're looking in a L0 file, since
       // L0 files won't be parallelized anyway. The regular synchronous version
       // is faster.
+      fprintf(stderr, "Version::MultiGet debug: async_io=%d, using_coroutines=%d, use_async_io_=%d, hit_level=%d, remaining_overlap=%d\n",
+    read_options.async_io,
+              using_coroutines(),
+              use_async_io_,
+              fp.GetHitFileLevel(),
+              fp.RemainingOverlapInLevel());
       if (!read_options.async_io || !using_coroutines() || !use_async_io_ ||
           fp.GetHitFileLevel() == 0 || !fp.RemainingOverlapInLevel()) {
         if (f) {

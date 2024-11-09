@@ -745,7 +745,6 @@ class DB {
     size_t num_keys = keys.size();
     std::vector<Status> statuses(num_keys);
     std::vector<PinnableSlice> pin_values(num_keys);
-
     values->resize(num_keys);
     if (timestamps) {
       timestamps->resize(num_keys);
