@@ -7139,4 +7139,14 @@ uint64_t rocksdb_wait_for_compact_options_get_timeout(
   return opt->rep.timeout.count();
 }
 
+void rocksdb_readoptions_set_optimize_multiget_for_io(
+    rocksdb_readoptions_t* opt, unsigned char v) {
+  opt->rep.optimize_multiget_for_io = v;
+}
+
+unsigned char rocksdb_readoptions_get_optimize_multiget_for_io(
+    rocksdb_readoptions_t* opt) {
+  return opt->rep.optimize_multiget_for_io;
+}
+
 }  // end extern "C"

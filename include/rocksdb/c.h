@@ -3121,6 +3121,11 @@ extern ROCKSDB_LIBRARY_API uint64_t
 rocksdb_wait_for_compact_options_get_timeout(
     rocksdb_wait_for_compact_options_t* opt);
 
+extern ROCKSDB_LIBRARY_API void rocksdb_readoptions_set_optimize_multiget_for_io(
+    rocksdb_readoptions_t*, unsigned char);
+extern ROCKSDB_LIBRARY_API unsigned char 
+rocksdb_readoptions_get_optimize_multiget_for_io(rocksdb_readoptions_t*);
+
 #ifdef __cplusplus
 } /* end extern "C" */
 #endif
