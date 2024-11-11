@@ -2583,8 +2583,8 @@ void Version::Get(const ReadOptions& read_options, const LookupKey& k,
 
 void Version::MultiGet(const ReadOptions& read_options, MultiGetRange* range,
                        ReadCallback* callback) {
-  fprintf(stderr, "Version::MultiGet called with optimize_multiget_for_io: %d, async_io=%d, using_coroutines=%d, use_async_io_=%d\n",
-    read_options.optimize_multiget_for_io, read_options.async_io, using_coroutines(), use_async_io_);
+  // fprintf(stderr, "Version::MultiGet called with optimize_multiget_for_io: %d, async_io=%d, using_coroutines=%d, use_async_io_=%d\n",
+  //   read_options.optimize_multiget_for_io, read_options.async_io, using_coroutines(), use_async_io_);
   PinnedIteratorsManager pinned_iters_mgr;
 
   // Pin blocks that we read to hold merge operands
@@ -2640,8 +2640,8 @@ void Version::MultiGet(const ReadOptions& read_options, MultiGetRange* range,
                           storage_info_.num_non_empty_levels_,
                           &storage_info_.file_indexer_, user_comparator(),
                           internal_comparator());
-    fprintf(stderr, "FilePickerMultiGet created: IsSearchEnded=%d\n", 
-          fp.IsSearchEnded());
+    // fprintf(stderr, "FilePickerMultiGet created: IsSearchEnded=%d\n", 
+    //       fp.IsSearchEnded());
     FdWithKeyRange* f = fp.GetNextFileInLevel();
     uint64_t num_index_read = 0;
     uint64_t num_filter_read = 0;
@@ -2658,19 +2658,19 @@ void Version::MultiGet(const ReadOptions& read_options, MultiGetRange* range,
       // Avoid using the coroutine version if we're looking in a L0 file, since
       // L0 files won't be parallelized anyway. The regular synchronous version
       // is faster.
-      fprintf(stderr, "Version::MultiGet debug: async_io=%d, using_coroutines=%d, use_async_io_=%d, hit_level=%d, remaining_overlap=%d\n",
-    read_options.async_io,
-              using_coroutines(),
-              use_async_io_,
-              fp.GetHitFileLevel(),
-              fp.RemainingOverlapInLevel());
-      fprintf(stderr, "Storage info: num_non_empty_levels_=%d\n", 
-          storage_info_.num_non_empty_levels_);
+    //   fprintf(stderr, "Version::MultiGet debug: async_io=%d, using_coroutines=%d, use_async_io_=%d, hit_level=%d, remaining_overlap=%d\n",
+    // read_options.async_io,
+    //           using_coroutines(),
+    //           use_async_io_,
+    //           fp.GetHitFileLevel(),
+    //           fp.RemainingOverlapInLevel());
+      // fprintf(stderr, "Storage info: num_non_empty_levels_=%d\n", 
+      //     storage_info_.num_non_empty_levels_);
       if (!read_options.async_io || !using_coroutines() || !use_async_io_ ||
           fp.GetHitFileLevel() == 0 || !fp.RemainingOverlapInLevel()) {
-            fprintf(stderr, "Taking sync path: async_io=%d, using_coroutines=%d, use_async_io_=%d, level=%d, remaining_overlap=%d\n",
-              read_options.async_io, using_coroutines(), use_async_io_,
-              fp.GetHitFileLevel(), fp.RemainingOverlapInLevel());
+            // fprintf(stderr, "Taking sync path: async_io=%d, using_coroutines=%d, use_async_io_=%d, level=%d, remaining_overlap=%d\n",
+            //   read_options.async_io, using_coroutines(), use_async_io_,
+            //   fp.GetHitFileLevel(), fp.RemainingOverlapInLevel());
         if (f) {
           bool skip_filters =
               IsFilterSkipped(static_cast<int>(fp.GetHitFileLevel()),
@@ -2865,7 +2865,7 @@ Status Version::ProcessBatch(
   FilePickerMultiGet& fp = *batch;
   MultiGetRange range = fp.GetRange();
 
-  fprintf(stderr, "ProcessBatch start - RangeEmpty=%d\n", range.empty());
+  // fprintf(stderr, "ProcessBatch start - RangeEmpty=%d\n", range.empty());
   // Initialize a new empty range. Any keys that are not in this level will
   // eventually become part of the new range.
   MultiGetRange leftover(range, range.begin(), range.begin());
@@ -2873,8 +2873,8 @@ Status Version::ProcessBatch(
   Status s;
 
   f = fp.GetNextFileInLevel();
-  fprintf(stderr, "ProcessBatch - Initial file pointer: %p, HitFileLevel=%d\n", 
-          (void*)f, f ? fp.GetHitFileLevel() : -1);
+  // fprintf(stderr, "ProcessBatch - Initial file pointer: %p, HitFileLevel=%d\n", 
+  //         (void*)f, f ? fp.GetHitFileLevel() : -1);
   while (!f) {
     fp.PrepareNextLevelForSearch();
     if (!fp.IsSearchEnded()) {
@@ -2971,7 +2971,7 @@ Status Version::ProcessBatch(
 Status Version::MultiGetAsync(
     const ReadOptions& options, MultiGetRange* range,
     std::unordered_map<uint64_t, BlobReadContexts>* blob_ctxs) {
-  fprintf(stderr, "MultiGetAsync called\n");
+  // fprintf(stderr, "MultiGetAsync called\n");
   autovector<FilePickerMultiGet, 4> batches;
   std::deque<size_t> waiting;
   std::deque<size_t> to_process;
@@ -2986,8 +2986,8 @@ Status Version::MultiGetAsync(
                        internal_comparator());
   to_process.emplace_back(0);
 
-  fprintf(stderr, "Initial batch - IsSearchEnded=%d, RangeEmpty=%d\n",
-          batches[0].IsSearchEnded(), batches[0].GetRange().empty());
+  // fprintf(stderr, "Initial batch - IsSearchEnded=%d, RangeEmpty=%d\n",
+  //         batches[0].IsSearchEnded(), batches[0].GetRange().empty());
 
   while (!to_process.empty()) {
     // As we process a batch, it may get split into two. So reserve space for
@@ -2999,8 +2999,8 @@ Status Version::MultiGetAsync(
     FilePickerMultiGet* batch = &batches.at(idx);
     to_process.pop_front();
 
-    fprintf(stderr, "Processing batch %zu - IsSearchEnded=%d, RangeEmpty=%d\n",
-            idx, batch->IsSearchEnded(), batch->GetRange().empty());
+    // fprintf(stderr, "Processing batch %zu - IsSearchEnded=%d, RangeEmpty=%d\n",
+    //         idx, batch->IsSearchEnded(), batch->GetRange().empty());
     unsigned int num_tasks_queued = 0;
     if (batch->IsSearchEnded() || batch->GetRange().empty()) {
       // If to_process is empty, i.e no more batches to look at, then we need
@@ -3014,8 +3014,8 @@ Status Version::MultiGetAsync(
       // to_process
       s = ProcessBatch(options, batch, mget_tasks, blob_ctxs, batches, waiting,
                        to_process, num_tasks_queued, mget_stats);
-      fprintf(stderr, "ProcessBatch result - status=%s, num_tasks_queued=%u\n",
-              s.ToString().c_str(), num_tasks_queued);
+      // fprintf(stderr, "ProcessBatch result - status=%s, num_tasks_queued=%u\n",
+      //         s.ToString().c_str(), num_tasks_queued);
       // If ProcessBatch didn't enqueue any coroutine tasks, it means all
       // keys were filtered out. So put the batch back in to_process to
       // lookup in the next level

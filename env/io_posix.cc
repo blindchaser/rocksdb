@@ -606,7 +606,7 @@ IOStatus PosixRandomAccessFile::Read(uint64_t offset, size_t n,
 IOStatus PosixRandomAccessFile::MultiRead(FSReadRequest* reqs, size_t num_reqs,
                                           const IOOptions& options,
                                           IODebugContext* dbg) {
-  fprintf(stderr, "PosixRandomAccessFile::MultiRead called with num_reqs: %zu\n", num_reqs);
+  // fprintf(stderr, "PosixRandomAccessFile::MultiRead called with num_reqs: %zu\n", num_reqs);
   if (use_direct_io()) {
     for (size_t i = 0; i < num_reqs; i++) {
       assert(IsSectorAligned(reqs[i].offset, GetRequiredBufferAlignment()));
@@ -675,7 +675,7 @@ IOStatus PosixRandomAccessFile::MultiRead(FSReadRequest* reqs, size_t num_reqs,
 
       struct io_uring_sqe* sqe;
       sqe = io_uring_get_sqe(iu);
-      fprintf(stderr, "io_uring_prep_readv: sqe: %p\n", sqe);
+      // fprintf(stderr, "io_uring_prep_readv: sqe: %p\n", sqe);
       io_uring_prep_readv(
           sqe, fd_, &rep_to_submit->iov, 1,
           rep_to_submit->req->offset + rep_to_submit->finished_len);
@@ -694,7 +694,7 @@ IOStatus PosixRandomAccessFile::MultiRead(FSReadRequest* reqs, size_t num_reqs,
         iu);
 
     if (static_cast<size_t>(ret) != this_reqs) {
-      fprintf(stderr, "ret = %ld this_reqs: %ld\n", (long)ret, (long)this_reqs);
+      // fprintf(stderr, "ret = %ld this_reqs: %ld\n", (long)ret, (long)this_reqs);
       // If error happens and we submitted fewer than expected, it is an
       // exception case and we don't retry here. We should still consume
       // what is is submitted in the ring.
@@ -735,10 +735,10 @@ IOStatus PosixRandomAccessFile::MultiRead(FSReadRequest* reqs, size_t num_reqs,
       // Check that we got a valid unique cqe data
       auto wrap_check = wrap_cache.find(req_wrap);
       if (wrap_check == wrap_cache.end()) {
-        fprintf(stderr,
-                "PosixRandomAccessFile::MultiRead: "
-                "Bad cqe data from IO uring - %p\n",
-                req_wrap);
+        // fprintf(stderr,
+        //         "PosixRandomAccessFile::MultiRead: "
+        //         "Bad cqe data from IO uring - %p\n",
+        //         req_wrap);
         port::PrintStack();
         ios = IOStatus::IOError("io_uring_cqe_get_data() returned " +
                                 std::to_string((uint64_t)req_wrap));
@@ -913,7 +913,7 @@ IOStatus PosixRandomAccessFile::ReadAsync(
   // Step 4: io_uring_submit
   ssize_t ret = io_uring_submit(iu);
   if (ret < 0) {
-    fprintf(stderr, "io_uring_submit error: %ld\n", long(ret));
+    // fprintf(stderr, "io_uring_submit error: %ld\n", long(ret));
     return IOStatus::IOError("io_uring_submit() requested but returned " +
                              std::to_string(ret));
   }
@@ -950,8 +950,8 @@ PosixMmapReadableFile::PosixMmapReadableFile(const int fd,
 PosixMmapReadableFile::~PosixMmapReadableFile() {
   int ret = munmap(mmapped_region_, length_);
   if (ret != 0) {
-    fprintf(stdout, "failed to munmap %p length %" ROCKSDB_PRIszt " \n",
-            mmapped_region_, length_);
+    // fprintf(stdout, "failed to munmap %p length %" ROCKSDB_PRIszt " \n",
+    //         mmapped_region_, length_);
   }
   close(fd_);
 }

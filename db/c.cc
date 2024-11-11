@@ -1445,7 +1445,7 @@ void rocksdb_multi_get(rocksdb_t* db, const rocksdb_readoptions_t* options,
                        size_t num_keys, const char* const* keys_list,
                        const size_t* keys_list_sizes, char** values_list,
                        size_t* values_list_sizes, char** errs) {
-  fprintf(stderr, "rocksdb_multi_get called with optimize_multiget_for_io: %d\n", options->rep.optimize_multiget_for_io);
+  // fprintf(stderr, "rocksdb_multi_get called with optimize_multiget_for_io: %d\n", options->rep.optimize_multiget_for_io);
   std::vector<Slice> keys(num_keys);
   for (size_t i = 0; i < num_keys; i++) {
     keys[i] = Slice(keys_list[i], keys_list_sizes[i]);
