@@ -2640,6 +2640,8 @@ void Version::MultiGet(const ReadOptions& read_options, MultiGetRange* range,
                           storage_info_.num_non_empty_levels_,
                           &storage_info_.file_indexer_, user_comparator(),
                           internal_comparator());
+    fprintf(stderr, "FilePickerMultiGet created: IsSearchEnded=%d\n", 
+          fp.IsSearchEnded());
     FdWithKeyRange* f = fp.GetNextFileInLevel();
     uint64_t num_index_read = 0;
     uint64_t num_filter_read = 0;
@@ -2662,8 +2664,13 @@ void Version::MultiGet(const ReadOptions& read_options, MultiGetRange* range,
               use_async_io_,
               fp.GetHitFileLevel(),
               fp.RemainingOverlapInLevel());
+      fprintf(stderr, "Storage info: num_non_empty_levels_=%d\n", 
+          storage_info_.num_non_empty_levels_);
       if (!read_options.async_io || !using_coroutines() || !use_async_io_ ||
           fp.GetHitFileLevel() == 0 || !fp.RemainingOverlapInLevel()) {
+            fprintf(stderr, "Taking sync path: async_io=%d, using_coroutines=%d, use_async_io_=%d, level=%d, remaining_overlap=%d\n",
+              read_options.async_io, using_coroutines(), use_async_io_,
+              fp.GetHitFileLevel(), fp.RemainingOverlapInLevel());
         if (f) {
           bool skip_filters =
               IsFilterSkipped(static_cast<int>(fp.GetHitFileLevel()),
@@ -2960,6 +2967,7 @@ Status Version::ProcessBatch(
 Status Version::MultiGetAsync(
     const ReadOptions& options, MultiGetRange* range,
     std::unordered_map<uint64_t, BlobReadContexts>* blob_ctxs) {
+  fprintf(stderr, "MultiGetAsync called\n");
   autovector<FilePickerMultiGet, 4> batches;
   std::deque<size_t> waiting;
   std::deque<size_t> to_process;
@@ -2973,6 +2981,9 @@ Status Version::MultiGetAsync(
                        &storage_info_.file_indexer_, user_comparator(),
                        internal_comparator());
   to_process.emplace_back(0);
+
+  fprintf(stderr, "MultiGetAsync: initial batch created, num_non_empty_levels=%d\n",
+          storage_info_.num_non_empty_levels_);
 
   while (!to_process.empty()) {
     // As we process a batch, it may get split into two. So reserve space for
