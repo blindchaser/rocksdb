@@ -2864,6 +2864,8 @@ Status Version::ProcessBatch(
         mget_stats) {
   FilePickerMultiGet& fp = *batch;
   MultiGetRange range = fp.GetRange();
+
+  fprintf(stderr, "ProcessBatch start - RangeEmpty=%d\n", range.empty());
   // Initialize a new empty range. Any keys that are not in this level will
   // eventually become part of the new range.
   MultiGetRange leftover(range, range.begin(), range.begin());
@@ -2871,6 +2873,8 @@ Status Version::ProcessBatch(
   Status s;
 
   f = fp.GetNextFileInLevel();
+  fprintf(stderr, "ProcessBatch - Initial file pointer: %p, HitFileLevel=%d\n", 
+          (void*)f, f ? fp.GetHitFileLevel() : -1);
   while (!f) {
     fp.PrepareNextLevelForSearch();
     if (!fp.IsSearchEnded()) {
@@ -2982,8 +2986,8 @@ Status Version::MultiGetAsync(
                        internal_comparator());
   to_process.emplace_back(0);
 
-  fprintf(stderr, "MultiGetAsync: initial batch created, num_non_empty_levels=%d\n",
-          storage_info_.num_non_empty_levels_);
+  fprintf(stderr, "Initial batch - IsSearchEnded=%d, RangeEmpty=%d\n",
+          batches[0].IsSearchEnded(), batches[0].GetRange().empty());
 
   while (!to_process.empty()) {
     // As we process a batch, it may get split into two. So reserve space for
@@ -2993,8 +2997,11 @@ Status Version::MultiGetAsync(
 
     size_t idx = to_process.front();
     FilePickerMultiGet* batch = &batches.at(idx);
-    unsigned int num_tasks_queued = 0;
     to_process.pop_front();
+
+    fprintf(stderr, "Processing batch %zu - IsSearchEnded=%d, RangeEmpty=%d\n",
+            idx, batch->IsSearchEnded(), batch->GetRange().empty());
+    unsigned int num_tasks_queued = 0;
     if (batch->IsSearchEnded() || batch->GetRange().empty()) {
       // If to_process is empty, i.e no more batches to look at, then we need
       // schedule the enqueued coroutines and wait for them. Otherwise, we
@@ -3007,6 +3014,8 @@ Status Version::MultiGetAsync(
       // to_process
       s = ProcessBatch(options, batch, mget_tasks, blob_ctxs, batches, waiting,
                        to_process, num_tasks_queued, mget_stats);
+      fprintf(stderr, "ProcessBatch result - status=%s, num_tasks_queued=%u\n",
+              s.ToString().c_str(), num_tasks_queued);
       // If ProcessBatch didn't enqueue any coroutine tasks, it means all
       // keys were filtered out. So put the batch back in to_process to
       // lookup in the next level
